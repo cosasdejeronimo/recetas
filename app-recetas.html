@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Recetas & Compras</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f8f8f8;
+      overflow: hidden;
+    }
+
+    #app {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: #fff;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e0e0e0;
+      font-weight: 700;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-back {
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 0;
+    }
+
+    .nav {
+      height: 60px;
+      border-top: 1px solid #e0e0e0;
+      background: #fff;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .nav-item {
+      flex: 1;
+      text-align: center;
+      font-size: 24px;
+      opacity: 0.4;
+      cursor: pointer;
+      padding: 8px;
+    }
+
+    .nav-item.active {
+      opacity: 1;
+    }
+
+    .recipe-item {
+      padding: 16px;
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      cursor: pointer;
+    }
+
+    .recipe-name {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .recipe-meta {
+      font-size: 12px;
+      color: #666;
+      display: flex;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .tag {
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    .section-title {
+      padding: 16px;
+      font-weight: 700;
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      border-top: 1px solid #e0e0e0;
+      margin-top: 16px;
+    }
+
+    .ingredient {
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .ingredient-status {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #1976d2;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .ingredient.owned .ingredient-status {
+      background: #e8f5e9;
+      border-color: #2e7d32;
+      color: #2e7d32;
+    }
+
+    .ingredient.missing .ingredient-status {
+      background: #ffebee;
+      border-color: #c62828;
+      color: #c62828;
+    }
+
+    .ingredient-name {
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .ingredient-amount {
+      font-size: 13px;
+      color: #999;
+    }
+
+    .step {
+      padding: 16px;
+      background: #fff;
+      margin: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .step-num {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #1976d2;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .step-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .step-text {
+      font-size: 13px;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .portion-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 16px;
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .portion-btn {
+      padding: 10px;
+      background: #e0e0e0;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .portion-btn.active {
+      background: #1976d2;
+      color: #fff;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      background: #fff;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      background: #1976d2;
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: #1976d2;
+      border: 2px solid #1976d2;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .pantry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 16px;
+    }
+
+    .pantry-item {
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pantry-item.owned {
+      background: #e8f5e9;
+      border-color: #2e7d32;
+    }
+
+    .pantry-item.missing {
+      background: #ffebee;
+      border-color: #c62828;
+    }
+
+    .shopping-item {
+      padding: 12px 16px;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .checkbox {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #1976d2;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .shopping-item.done .checkbox {
+      background: #4caf50;
+      border-color: #4caf50;
+      color: #fff;
+    }
+
+    .shopping-item.done .item-name {
+      text-decoration: line-through;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="header">
+      <span id="back" class="header-back hidden">←</span>
+      <span id="title">Mis Recetas</span>
+      <span></span>
+    </div>
+
+    <div class="content" id="content"></div>
+
+    <div class="nav">
+      <div class="nav-item active" data-view="recipes">🏠</div>
+      <div class="nav-item" data-view="shopping">📝</div>
+      <div class="nav-item" data-view="pantry">🗄️</div>
+    </div>
+  </div>
+
+  <script>
+    const RECIPES = [
+      {
+        id: 1,
+        name: "BAO",
+        time: "60 min",
+        difficulty: "Media",
+        rating: "5.0",
+        tags: ["Asiática"],
+        ingredients: [
+          { name: "Harina", amount: "250g" },
+          { name: "Levadura", amount: "1 cda" },
+          { name: "Sal", amount: "1/2 cda" },
+          { name: "Agua tibia", amount: "150ml" },
+          { name: "Aceite", amount: "2 cda" }
+        ],
+        steps: [
+          "Mezcla harina, levadura, sal. Agrega agua y aceite",
+          "Amasa 10 minutos hasta suave",
+          "Deja reposar 1 hora",
+          "Divide en 8 porciones",
+          "Deja reposar 20 minutos más",
+          "Cocina al vapor 15 minutos"
+        ]
+      },
+      {
+        id: 2,
+        name: "POLLO ROSTIZADO",
+        time: "90 min",
+        difficulty: "Media",
+        rating: "4.9",
+        tags: ["Clásico"],
+        ingredients: [
+          { name: "Pollo", amount: "1.5kg" },
+          { name: "Limón", amount: "2" },
+          { name: "Ajo", amount: "6 dientes" },
+          { name: "Tomillo", amount: "3 ramas" },
+          { name: "Aceite oliva", amount: "4 cda" },
+          { name: "Sal", amount: "1 cda" }
+        ],
+        steps: [
+          "Seca el pollo bien",
+          "Unta con aceite, sal, pimienta, tomillo",
+          "Precalienta horno a 220°C",
+          "Asa 70-80 minutos",
+          "Verifica cocción",
+          "Deja reposar 10 min",
+          "Sirve caliente"
+        ]
+      },
+      {
+        id: 3,
+        name: "SOPA DE CEBOLLA",
+        time: "45 min",
+        difficulty: "Fácil",
+        rating: "4.7",
+        tags: ["Francesa"],
+        ingredients: [
+          { name: "Cebolla", amount: "1kg" },
+          { name: "Caldo de res", amount: "1L" },
+          { name: "Pan baguette", amount: "1" },
+          { name: "Queso", amount: "100g" },
+          { name: "Mantequilla", amount: "3 cda" },
+          { name: "Vino blanco", amount: "250ml" }
+        ],
+        steps: [
+          "Corta cebolla en rodajas",
+          "Derrite mantequilla a fuego lento",
+          "Cocina cebolla 30 minutos hasta caramelizar",
+          "Agrega vino, reduce",
+          "Vierte caldo",
+          "Tuesta pan, coloca en tazones",
+          "Vierte sopa y cubre con queso",
+          "Gratina 3-4 minutos"
+        ]
+      },
+      {
+        id: 4,
+        name: "POLLO COREANO",
+        time: "35 min",
+        difficulty: "Media",
+        rating: "4.7",
+        tags: ["Asiática"],
+        ingredients: [
+          { name: "Pechuga de pollo", amount: "600g" },
+          { name: "Soya", amount: "4 cda" },
+          { name: "Azúcar", amount: "2 cda" },
+          { name: "Ajo", amount: "4 dientes" },
+          { name: "Jengibre", amount: "1 cda" }
+        ],
+        steps: [
+          "Corta pollo en cubos",
+          "Calienta aceite en wok",
+          "Dora pollo 8-10 minutos",
+          "Retira y reserva",
+          "Cocina ajo y jengibre 1 minuto",
+          "Agrega soya y azúcar",
+          "Devuelve pollo, cocina 15 minutos"
+        ]
+      },
+      {
+        id: 5,
+        name: "BEEF BOURGIGNON",
+        time: "180 min",
+        difficulty: "Avanzada",
+        rating: "5.0",
+        tags: ["Francesa", "Gourmet"],
+        ingredients: [
+          { name: "Carne de res", amount: "1.5kg" },
+          { name: "Vino tinto", amount: "750ml" },
+          { name: "Cebolla", amount: "3" },
+          { name: "Zanahoria", amount: "4" },
+          { name: "Champiñones", amount: "500g" },
+          { name: "Ajo", amount: "4 dientes" },
+          { name: "Caldo de res", amount: "500ml" }
+        ],
+        steps: [
+          "Corta carne en cubos grandes",
+          "Dora en olla grande en tandas",
+          "Cocina cebolla y zanahoria 5 min",
+          "Agrega tomate concentrado",
+          "Vierte vino y raspa fondo",
+          "Agrega caldo, tapa y cocina 2.5 horas",
+          "Agrega champiñones a mitad",
+          "Verifica cocción y ajusta sabor"
+        ]
+      },
+      {
+        id: 6,
+        name: "SOPA DE LENTEJAS",
+        time: "60 min",
+        difficulty: "Fácil",
+        rating: "4.6",
+        tags: ["Vegetariana"],
+        ingredients: [
+          { name: "Lentejas", amount: "300g" },
+          { name: "Cebolla", amount: "1" },
+          { name: "Zanahoria", amount: "2" },
+          { name: "Ajo", amount: "3 dientes" },
+          { name: "Caldo", amount: "1L" },
+          { name: "Tomate", amount: "2" }
+        ],
+        steps: [
+          "Enjuaga lentejas",
+          "Cocina cebolla, zanahoria 5 min",
+          "Agrega ajo 1 minuto",
+          "Añade lentejas",
+          "Vierte caldo, tapa 45 minutos",
+          "Agrega tomate, cocina 10 min",
+          "Sirve con cilantro fresco"
+        ]
+      },
+      {
+        id: 7,
+        name: "PORK BELLY GLASEADO",
+        time: "45 min",
+        difficulty: "Media",
+        rating: "4.8",
+        tags: ["Asiática"],
+        ingredients: [
+          { name: "Pork belly", amount: "500g" },
+          { name: "Soya", amount: "3 cda" },
+          { name: "Miel", amount: "2 cda" },
+          { name: "Ajo", amount: "3 dientes" },
+          { name: "Jengibre", amount: "1 cda" },
+          { name: "Vinagre", amount: "1 cda" }
+        ],
+        steps: [
+          "Corta pork belly en cubos",
+          "Sella en sartén 2 min por lado",
+          "Mezcla soya, miel, ajo, jengibre, vinagre",
+          "Vierte glaseado sobre carne",
+          "Cocina 30 minutos a fuego bajo",
+          "Deja enfriar 5 minutos",
+          "Sirve con pepinillos"
+        ]
+      },
+      {
+        id: 8,
+        name: "POT A FEU",
+        time: "120 min",
+        difficulty: "Media",
+        rating: "4.8",
+        tags: ["Francesa"],
+        ingredients: [
+          { name: "Carne de res", amount: "800g" },
+          { name: "Cebolla", amount: "2" },
+          { name: "Zanahoria", amount: "4" },
+          { name: "Papa", amount: "4" },
+          { name: "Caldo de res", amount: "2L" }
+        ],
+        steps: [
+          "Coloca carne en caldo frío",
+          "Tapa y hierve a fuego lento",
+          "Retira espuma que se forma",
+          "Agrega verduras después 30 min",
+          "Cocina 60 minutos más",
+          "Sirve caliente"
+        ]
+      },
+      {
+        id: 9,
+        name: "ENCURTIDO PARA BAO",
+        time: "15 min",
+        difficulty: "Fácil",
+        rating: "4.5",
+        tags: ["Asiática"],
+        ingredients: [
+          { name: "Pepino", amount: "1" },
+          { name: "Cebolla", amount: "1/2" },
+          { name: "Vinagre", amount: "1/4 taza" },
+          { name: "Azúcar", amount: "1 cda" },
+          { name: "Sal", amount: "1/2 cda" }
+        ],
+        steps: [
+          "Corta pepino en tiras",
+          "Corta cebolla en rodajas",
+          "Mezcla vinagre, azúcar, sal",
+          "Vierte sobre pepino y cebolla",
+          "Deja reposar 15 minutos",
+          "Escurre y sirve"
+        ]
+      }
+    ];
+
+    const PANTRY_ITEMS = ["sal", "azúcar", "pimienta", "ajo", "soya", "jamón", "queso", "pan", "atún", "tomate", "cebolla", "chile", "miel", "arroz", "huevo", "papa", "brócoli", "moras", "manzana", "plátano", "avena", "tocino", "salchichas", "catsup", "mostaza", "harina", "carne de res", "espinacas", "lechuga", "vinagre", "aceite de oliva", "pescado", "pasta", "mayonesa", "frambuesas", "limón", "champiñones", "mantequilla", "leche", "crema"];
+
+    let state = {
+      view: "recipes",
+      selectedRecipe: null,
+      selectedPortion: 4,
+      pantry: {},
+      shoppingList: [],
+      cooking: false
+    };
+
+    // Initialize pantry
+    PANTRY_ITEMS.forEach(item => {
+      state.pantry[item] = Math.random() > 0.3;
+    });
+
+    const app = document.getElementById("app");
+    const content = document.getElementById("content");
+    const back = document.getElementById("back");
+    const title = document.getElementById("title");
+    const navItems = document.querySelectorAll(".nav-item");
+
+    navItems.forEach(item => {
+      item.addEventListener("click", () => {
+        state.view = item.dataset.view;
+        state.selectedRecipe = null;
+        render();
+      });
+    });
+
+    back.addEventListener("click", () => {
+      state.selectedRecipe = null;
+      render();
+    });
+
+    function scaleAmount(amount, factor) {
+      const match = amount.match(/^([\d.]+)/);
+      if (match) {
+        const num = parseFloat(match[1]);
+        const unit = amount.replace(match[0], "").trim();
+        const scaled = (num * factor).toFixed(1);
+        return `${scaled} ${unit}`;
+      }
+      return amount;
+    }
+
+    function render() {
+      navItems.forEach(item => {
+        item.classList.toggle("active", item.dataset.view === state.view);
+      });
+
+      if (state.selectedRecipe) {
+        renderRecipeDetail();
+      } else {
+        back.classList.add("hidden");
+        if (state.view === "recipes") {
+          title.textContent = "Mis Recetas";
+          renderRecipes();
+        } else if (state.view === "shopping") {
+          title.textContent = "Lista de Compras";
+          renderShopping();
+        } else if (state.view === "pantry") {
+          title.textContent = "Mi Despensa";
+          renderPantry();
+        }
+      }
+    }
+
+    function renderRecipes() {
+      content.innerHTML = RECIPES.map(recipe => `
+        <div class="recipe-item" onclick="selectRecipe(${recipe.id})">
+          <div class="recipe-name">${recipe.name}</div>
+          <div class="recipe-meta">
+            <span>⏱️ ${recipe.time}</span>
+            <span>🔧 ${recipe.difficulty}</span>
+            <span>⭐ ${recipe.rating}</span>
+          </div>
+          <div>${recipe.tags.map(t => `<span class="tag">${t}</span>`).join("")}</div>
+        </div>
+      `).join("");
+    }
+
+    function selectRecipe(id) {
+      state.selectedRecipe = RECIPES.find(r => r.id === id);
+      state.selectedPortion = 4;
+      render();
+    }
+
+    function renderRecipeDetail() {
+      const recipe = state.selectedRecipe;
+      back.classList.remove("hidden");
+      title.textContent = recipe.name;
+
+      const scaled = recipe.ingredients.map(ing => ({
+        ...ing,
+        amount: scaleAmount(ing.amount, state.selectedPortion / 4)
+      }));
+
+      content.innerHTML = `
+        <div class="portion-buttons">
+          ${[2, 4, 6, 8].map(p => `
+            <button class="portion-btn ${state.selectedPortion === p ? "active" : ""}" onclick="changePortion(${p})">
+              ${p}
+            </button>
+          `).join("")}
+        </div>
+
+        <div class="section-title">Ingredientes</div>
+        ${scaled.map((ing, i) => {
+          const owned = state.pantry[ing.name];
+          return `
+            <div class="ingredient ${owned ? "owned" : "missing"}">
+              <div class="ingredient-status">${owned ? "✓" : "✕"}</div>
+              <div class="ingredient-name">${ing.name}</div>
+              <div class="ingredient-amount">${ing.amount}</div>
+            </div>
+          `;
+        }).join("")}
+
+        <div class="section-title">Pasos</div>
+        ${recipe.steps.map((step, i) => `
+          <div class="step">
+            <div class="step-num">${i + 1}</div>
+            <div class="step-text">${step}</div>
+          </div>
+        `).join("")}
+      `;
+    }
+
+    function renderShopping() {
+      if (state.shoppingList.length === 0) {
+        content.innerHTML = `<div style="padding: 40px; text-align: center; color: #999;">
+          <div style="font-size: 40px; margin-bottom: 16px;">📝</div>
+          <div>Lista vacía</div>
+        </div>`;
+        return;
+      }
+
+      content.innerHTML = state.shoppingList.map((item, i) => `
+        <div class="shopping-item ${item.done ? "done" : ""}">
+          <div class="checkbox" onclick="toggleShopping(${i})">${item.done ? "✓" : ""}</div>
+          <div class="item-name">${item.name}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderPantry() {
+      content.innerHTML = `
+        <div class="pantry-grid">
+          ${Object.entries(state.pantry).map(([name, owned]) => `
+            <div class="pantry-item ${owned ? "owned" : "missing"}" onclick="togglePantry('${name}')">
+              <div>${name}</div>
+              <div>${owned ? "✓" : "✕"}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function changePortion(p) {
+      state.selectedPortion = p;
+      render();
+    }
+
+    function toggleShopping(i) {
+      state.shoppingList[i].done = !state.shoppingList[i].done;
+      render();
+    }
+
+    function togglePantry(name) {
+      state.pantry[name] = !state.pantry[name];
+      render();
+    }
+
+    window.selectRecipe = selectRecipe;
+    window.changePortion = changePortion;
+    window.toggleShopping = toggleShopping;
+    window.togglePantry = togglePantry;
+
+    render();
+  </script>
+</body>
+</html>
